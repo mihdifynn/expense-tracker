@@ -1,20 +1,9 @@
-import type { AppData, Expense, Account, Loan } from "@/lib/types";
+import type { DataContextType, Expense, Account, Loan, AppData } from "@/lib/types";
 
-import { useState, useEffect, useContext, createContext } from "react";
-
-
-
-interface DataContextType  {
-  data: AppData;
-  addAccount: (account: Account) => void;
-  deleteAccount: (id: number) => void;
-  editAccountName: (id: number, name: string) => void;
-  addExpense: (expense: Expense) => void;
-  addLoan: (loan: Loan) => void;
-}
+import { useState, useEffect, useMemo } from "react";
+import { DataContext } from "@/lib/data-context";
 
 
-const DataContext = createContext<DataContextType | null>(null);
 
 
 
@@ -36,9 +25,33 @@ export default function DataProvider(props: DataProviderProps) {
     else return {
       expenses: [],
       accounts: [],
-      loans: []
+      loans: [],
+      dailyBudget: 0,
+      savings: 0,
+      others: 0
     };
   });
+
+  const editDailyBudget = (amount: number) => {
+    setData(prev => ({
+      ...prev,
+      dailyBudget: amount
+    }))
+  }
+
+  const editSavings = (amount: number) => {
+    setData(prev => ({
+      ...prev,
+      savings: amount
+    }))
+  }
+
+  const editOthers = (amount: number) => {
+    setData(prev => ({
+      ...prev,
+      others: amount
+    }))
+  }
 
   const addAccount = (account: Account) => {
     setData(prev => ({
@@ -47,15 +60,15 @@ export default function DataProvider(props: DataProviderProps) {
     }));
   }
 
-  const deleteAccount = (id: number) => {
+  const deleteAccount = (id: string) => {
     setData(prev => ({
       ...prev,
-      accounts: prev.accounts.filter(acc => acc.id !== id)
-      // delete expenses from this account
+      accounts: prev.accounts.filter(acc => acc.id !== id),
+      expenses: prev.expenses.filter(exp => exp.accountId !== id)
     }))
   }
 
-  const editAccountName = (id: number, name: string) => {
+  const editAccountName = (id: string, name: string) => {
     setData(prev => ({
       ...prev,
       accounts: prev.accounts.map(acc => {
@@ -73,6 +86,24 @@ export default function DataProvider(props: DataProviderProps) {
     }));
   }
 
+  const editExpense = (expense: Expense) => {
+    setData(prev => ({
+      ...prev,
+      expenses: prev.expenses.map(exp => {
+        return exp.id === expense.id
+        ? expense
+        : exp
+      })
+    }));
+  }
+
+  const deleteExpense = (id: string) => {
+    setData(prev => ({
+      ...prev,
+      expenses: prev.expenses.filter(exp => exp.id !== id)
+    }));
+  }
+
   const addLoan = (loan: Loan) => {
     setData(prev => ({
       ...prev,
@@ -80,13 +111,23 @@ export default function DataProvider(props: DataProviderProps) {
     }));
   }
 
+  const accountNameMap = useMemo(() => {
+    return new Map(data.accounts.map(acc => [acc.id, acc.name]));
+  }, [data.accounts]);
+
   const providerData: DataContextType = {
     data,
+    accountNameMap,
     addAccount,
     deleteAccount,
     editAccountName,
     addExpense,
-    addLoan
+    editExpense,
+    deleteExpense,
+    addLoan,
+    editDailyBudget,
+    editSavings,
+    editOthers
   };
 
   useEffect(() => {
@@ -98,15 +139,4 @@ export default function DataProvider(props: DataProviderProps) {
       {children}
     </DataContext.Provider>
   );
-}
-
-
-export function useData() {
-  const context = useContext(DataContext);
-
-  if (!context) {
-    throw new Error('useData must be used within a DataProvider');
-  }
-
-  return context;
 }

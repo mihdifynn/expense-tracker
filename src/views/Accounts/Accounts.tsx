@@ -1,9 +1,10 @@
-import { useData } from "@/lib/data";
+import { useData } from "@/lib/useData";
 
 import AccountCard from "./AccountCard";
 
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
+import Container from "@mui/material/Container";
 
 
 
@@ -21,18 +22,20 @@ export default function Accounts() {
   )
 
   return (
-    <Stack
-      sx={{ p: 2 }}
-      spacing={2}
-    >
-    { accounts.map(acc => {
-      return (
-        <AccountCard
-          key={acc.id}
-          account={acc}
-        />
-      )
-    }) }
-    </Stack>
+    <Container>
+      <Stack
+        spacing={2}
+        sx={{ py: 2 }}
+      >
+      { accounts.map(acc => {
+        return (
+          <AccountCard
+            key={acc.id}
+            account={acc}
+          />
+        )
+      }) }
+      </Stack>
+    </Container>
   )
 }

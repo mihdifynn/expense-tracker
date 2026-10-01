@@ -25,11 +25,10 @@ export const appSx = {
 } as const satisfies Record<string, SxProps>;
 
 
-export const heroSx = {
+export const summarySx = {
     parent: {
         borderRadius,
         mt: 2,
-        mx: 1
     }
 } as const satisfies Record<string, SxProps>;
 

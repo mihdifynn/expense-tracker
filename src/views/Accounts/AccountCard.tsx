@@ -1,8 +1,8 @@
 import type { Account } from "@/lib/types";
 
 import { buttonSx as styles } from "@/lib/styles";
-import { useState } from "react";
-import { useData } from "@/lib/data";
+import { useState, useMemo } from "react";
+import { useData } from "@/lib/useData";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -37,6 +37,14 @@ export default function AccountCard(props: Props) {
 
   const { data } = useData();
 
+  const balance = useMemo(() => {
+    return data.expenses.reduce((flow, exp) => {
+      if (exp.accountId !== account.id) return flow;
+
+      return exp.flow === 'in' ? flow + exp.amount : flow - exp.amount
+    }, account.startBalance)
+  }, [data.expenses, account])
+
   return (
     <Card sx={styles}>
       <CardHeader
@@ -51,7 +59,7 @@ export default function AccountCard(props: Props) {
       />
 
       <CardContent>
-        <MoneyDisplay amount={account.startBalance} />
+        <MoneyDisplay amount={balance} />
       </CardContent>
     </Card>
   )
@@ -60,7 +68,7 @@ export default function AccountCard(props: Props) {
 
 
 interface ActionsProps {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -74,7 +82,7 @@ function Actions(props: ActionsProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [openDialog, setOpenDialog] = useState<'edit' | 'delete' | null>(null);
   const [formName, setFormName] = useState(name);
-  const [nameError, setNameError] = useState(false);
+  const nameExists = formName !== name && data.accounts.some(acc => acc.name === formName.trim());
 
   const handleCloseMenu = () => setAnchorEl(null);
 
@@ -93,11 +101,7 @@ function Actions(props: ActionsProps) {
       return
     }
 
-    const nameExists = Boolean(data.accounts.find(acc => acc.name === newName));
-    if (nameExists) {
-      setNameError(true);
-      return
-    }
+    if (nameExists) return
 
     editAccountName(id, newName)
   }
@@ -157,12 +161,9 @@ function Actions(props: ActionsProps) {
             margin="normal"
             variant="filled"
             value={formName}
-            onChange={e => {
-              if (nameError) setNameError(false);
-              setFormName(e.target.value)
-            }}
-            error={nameError}
-            helperText={nameError && 'This name already exists'}
+            onChange={e => setFormName(e.target.value)}
+            error={nameExists}
+            helperText={nameExists && 'This name already exists'}
             fullWidth
           />
         </DialogContent>

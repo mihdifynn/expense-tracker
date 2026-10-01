@@ -7,6 +7,7 @@ import TabPanel from "@/components/TabPanel";
 import AddForm from "@/components/AddForm";
 import DataProvider from "@/lib/data";
 import Accounts from "@/views/Accounts";
+import Expenses from "@/views/Expenses";
 
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
@@ -32,13 +33,15 @@ export default function App() {
           onChange={(_, newValue) => setTabValue(newValue)}
         >
           <Tab label="Expenses" />
+
           <Tab label="Accounts" />
+
           <Tab label="Loans" />
         </Tabs>
 
         <Box sx={styles.tabPanel}>
           <TabPanel value={tabValue} index={0}>
-            Expenses
+            <Expenses />
           </TabPanel>
 
           <TabPanel value={tabValue} index={1}>
@@ -46,9 +49,10 @@ export default function App() {
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
-            Loans
+            Coming soon...
           </TabPanel>
         </Box>
+
         <AddForm tab={tabValue} />
       </DataProvider>
     </ThemeProvider>
