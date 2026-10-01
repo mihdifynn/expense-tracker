@@ -25,7 +25,7 @@ export default function Accounts() {
     <Container>
       <Stack
         spacing={2}
-        sx={{ py: 2 }}
+        sx={{ py: 2, pb: 10 }}
       >
       { accounts.map(acc => {
         return (
