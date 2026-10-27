@@ -1,9 +1,10 @@
 import type { Account, Expense } from "@/lib/types";
 
 import { addFormSx as styles } from "@/lib/styles";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useData } from "@/lib/useData";
-import { isCashFlow } from "@/lib/functions";
+import { isCashFlow, capitalize } from "@/lib/functions";
+import { CASH_FLOWS } from "@/lib/constants";
 
 import NumberTextField from "@/components/NumberTextField";
 
@@ -16,6 +17,7 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
 import MenuItem from "@mui/material/MenuItem";
+import Collapse from "@mui/material/Collapse";
 
 import AddIcon from "@mui/icons-material/Add";
 
@@ -160,43 +162,90 @@ function AccountDialog(props: DialogProps) {
 
 
 
-type ExpenseForm = Omit<Expense, 'id'>;
+interface ExpenseForm extends Pick<Expense, 'accountId' | 'amount' | 'date' | 'flow'> {
+  description: string,
+  toAccountId: string,
 
-const initialExpense: ExpenseForm = {
+}
+
+const getInitialExpense = (): ExpenseForm => ({
   accountId: '',
+  toAccountId: '',
   amount: 0,
   description: '',
   date: new Date().toLocaleDateString('en-CA'),
   flow: 'out'
+})
+
+const toForm = (e: Expense): ExpenseForm => ({
+  accountId: e.accountId,
+  amount: e.amount,
+  date: e.date,
+  flow: e.flow,
+  description: e.description,
+  toAccountId: e.flow === 'transfer' ? e.toAccountId : ''
+});
+
+const toExpense = (form: ExpenseForm, id: string): Expense => {
+  const { toAccountId, flow, ...base } = form;
+
+  return flow === 'transfer'
+    ? { ...base, id, flow, toAccountId }
+    : { ...base, id, flow };
+};
+
+
+interface ExpenseDialogProps extends DialogProps {
+  expense?: Expense
 }
 
 
-function ExpenseDialog(props: DialogProps) {
+export function ExpenseDialog(props: ExpenseDialogProps) {
 
-  const { open, onClose } = props;
+  const { open, onClose, expense } = props;
 
-  const { data, addExpense } = useData();
-  const [form, setForm] = useState<ExpenseForm>(initialExpense);
-  const [accountError, setAccountError] = useState(false);
+  const isEdit = expense !== undefined;
+
+  const { data, addExpense, editExpense, deleteExpense } = useData();
+  const [form, setForm] = useState<ExpenseForm>(getInitialExpense);
+  const [error, setError] = useState<'account' | 'toAccount' | null>(null);
+
+  const isTransfer = form.flow === 'transfer';
 
   const handleClose = () => {
-    setForm(initialExpense);
+    setForm(getInitialExpense());
+    setError(null);
     onClose();
+  }
+
+  const handleDelete = () => {
+    if (expense) deleteExpense(expense.id);
   }
 
   const handleSave = () => {
     if (!form.accountId) {
-      setAccountError(true);
+      setError('account');
       return;
     }
+    if (isTransfer && (!form.toAccountId || form.accountId === form.toAccountId)) {
+      setError('toAccount');
+      return
+    }
 
-    const newExpense: Expense = {
-      ...form,
-      id: crypto.randomUUID()
-    };
-    addExpense(newExpense);
+    const newExpense = toExpense(form, expense?.id ?? crypto.randomUUID())
+
+    if (isEdit) editExpense(newExpense);
+    else addExpense(newExpense);
+
     handleClose();
   }
+
+  useEffect(() => {
+    if (open) {
+      setForm(expense ? toForm(expense) : getInitialExpense());
+      setError(null)
+    }
+  }, [expense, open])
 
   return (
     <Dialog
@@ -208,7 +257,7 @@ function ExpenseDialog(props: DialogProps) {
       fullWidth
     >
       <DialogTitle>
-        Add Expense
+        {isEdit ? 'Edit' : 'Add'} Expense
       </DialogTitle>
 
       <DialogContent>
@@ -241,28 +290,29 @@ function ExpenseDialog(props: DialogProps) {
             select
             fullWidth
           >
-            <MenuItem value="in">
-              In
+          { CASH_FLOWS.map(flow => (
+            <MenuItem
+              key={flow}
+              value={flow}
+            >
+              {capitalize(flow)}
             </MenuItem>
-
-            <MenuItem value="out">
-              Out
-            </MenuItem>
+          )) }
           </TextField>
         </Stack>
 
         <TextField
           margin="normal"
           variant="filled"
-          label="Account"
+          label={isTransfer ? 'From' : 'Account'}
           value={form.accountId}
           onChange={e => setForm(prev => ({
             ...prev,
             accountId: e.target.value
           }))}
-          error={accountError}
-          helperText={accountError && 'Please select an account'}
-          onFocus={() => setAccountError(false)}
+          error={error === 'account'}
+          helperText={error === 'account' && 'Please select an account'}
+          onFocus={() => setError(null)}
           select
           fullWidth
         >
@@ -270,11 +320,40 @@ function ExpenseDialog(props: DialogProps) {
           <MenuItem
             key={acc.id}
             value={acc.id}
+            disabled={isTransfer && acc.id === form.toAccountId}
           >
             {acc.name}
           </MenuItem>
         )) }
         </TextField>
+
+        <Collapse in={isTransfer}>
+          <TextField
+            margin="normal"
+            variant="filled"
+            label="To"
+            value={form.toAccountId}
+            onChange={e => setForm(prev => ({
+              ...prev,
+              toAccountId: e.target.value
+            }))}
+            error={error === 'toAccount'}
+            helperText={error === 'toAccount' && 'Please select an account'}
+            onFocus={() => setError(null)}
+            select
+            fullWidth
+          >
+          { data.accounts.map(acc => (
+            <MenuItem
+              key={acc.id}
+              value={acc.id}
+              disabled={acc.id === form.accountId}
+            >
+              {acc.name}
+            </MenuItem>
+          )) }
+          </TextField>
+        </Collapse>
 
         <TextField
           margin="normal"
@@ -302,6 +381,15 @@ function ExpenseDialog(props: DialogProps) {
       </DialogContent>
 
       <DialogActions>
+        { isEdit && (
+          <Button
+            color="error"
+            onClick={handleDelete}
+          >
+            Delete
+          </Button>
+        ) }
+
         <Button
           onClick={handleClose}
           color="inherit"

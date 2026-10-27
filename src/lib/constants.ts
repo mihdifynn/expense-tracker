@@ -1,0 +1,1 @@
+export const CASH_FLOWS = ['in', 'out', 'transfer'] as const;

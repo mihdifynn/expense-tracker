@@ -13,8 +13,8 @@ import CardHeader from "@mui/material/CardHeader";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import Collapse from "@mui/material/Collapse";
+import Avatar from "@mui/material/Avatar";
 
-import PaidIcon from "@mui/icons-material/Paid";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 
@@ -29,8 +29,15 @@ export default function Summary() {
   const totalBalance = useMemo(() => {
     const startBalance = data.accounts.reduce((sum, acc) => sum + acc.startBalance, 0);
 
-    const cashFlow = data.expenses.reduce((flow, exp) => {
-      return exp.flow === 'in' ? flow + exp.amount : flow - exp.amount
+    const cashFlow = data.expenses.reduce((sum, exp) => {
+      switch (exp.flow) {
+        case 'in':
+          return sum + exp.amount
+        case 'out':
+          return sum - exp.amount
+        case 'transfer':
+          return sum
+      }
     }, 0)
     return startBalance + cashFlow;
   }, [data.accounts, data.expenses])
@@ -44,8 +51,14 @@ export default function Summary() {
     <Container>
       <Card sx={styles.parent}>
         <CardHeader
-          title="Total"
-          avatar={<PaidIcon color="primary" />}
+          title="Expenses"
+          avatar={(
+            <Avatar
+              src={`${import.meta.env.BASE_URL}apple-touch-icon.png`}
+              variant="square"
+              alt="VSpeed"
+            />
+          )}
           action={(
             <>
               <DetailsForm />

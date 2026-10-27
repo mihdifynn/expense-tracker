@@ -38,10 +38,17 @@ export default function AccountCard(props: Props) {
   const { data } = useData();
 
   const balance = useMemo(() => {
-    return data.expenses.reduce((flow, exp) => {
-      if (exp.accountId !== account.id) return flow;
-
-      return exp.flow === 'in' ? flow + exp.amount : flow - exp.amount
+    return data.expenses.reduce((sum, exp) => {
+      switch (exp.flow) {
+        case 'in':
+          return exp.accountId === account.id ? sum + exp.amount : sum;
+        case 'out':
+          return exp.accountId === account.id ? sum - exp.amount : sum;
+        case 'transfer':
+          if (exp.accountId === account.id) return sum - exp.amount;
+          if (exp.toAccountId === account.id) return sum + exp.amount;
+          return sum
+      }
     }, account.startBalance)
   }, [data.expenses, account])
 

@@ -1,3 +1,5 @@
+
+
 export interface Account {
     id: string;
     name: string;
@@ -5,14 +7,24 @@ export interface Account {
 }
 
 
-export interface Expense {
+interface BaseExpense {
     id: string;
     accountId: string;
     amount: number;
-    description: string;
     date: string;
-    flow: CashFlow;
+    description: string;
 }
+
+interface InOutExpense extends BaseExpense {
+    flow: 'in' | 'out';
+}
+
+interface TransferExpense extends BaseExpense {
+    flow: 'transfer';
+    toAccountId: string;
+}
+
+export type Expense = InOutExpense | TransferExpense;
 
 
 export interface Loan {
@@ -28,9 +40,6 @@ export interface AppData {
     savings: number;
     others: number;
 }
-
-
-export type CashFlow = 'in' | 'out';
 
 
 export interface DataContextType  {

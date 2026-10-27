@@ -11,7 +11,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 
-import EditIcon from "@mui/icons-material/Edit";
+import SettingsIcon from "@mui/icons-material/Settings"
 
 
 
@@ -53,7 +53,7 @@ export default function DetailsForm() {
         sx={{ color: 'text.secondary' }}
         onClick={() => setOpen(true)}
       >
-        <EditIcon fontSize="small" />
+        <SettingsIcon fontSize="small" />
       </IconButton>
 
       <Dialog

@@ -1,6 +1,6 @@
 import { useData } from "@/lib/useData";
 import { useMemo, Fragment } from "react";
-import { formatDate } from "@/lib/functions";
+import { formatDate, formatRupiah } from "@/lib/functions";
 
 import ExpenseCard from "./ExpenseCard";
 
@@ -21,6 +21,18 @@ export default function Expenses() {
     });
   }, [expenses]);
 
+  const dailyTotals = useMemo(() => {
+    const totals = new Map<string, number>();
+
+    for (const exp of expenses) {
+      if (exp.flow !== 'out') continue
+
+      totals.set(exp.date, (totals.get(exp.date) ?? 0) + exp.amount)
+    }
+
+    return totals
+  }, [expenses])
+
   if (expenses.length === 0) return (
     <Typography
       align="center"
@@ -39,8 +51,23 @@ export default function Expenses() {
         return (
           <Fragment key={exp.id}>
             { showDate && (
-              <ListSubheader>
-                { formatDate(exp.date) }
+              <ListSubheader
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <span>
+                  { formatDate(exp.date) }
+                </span>
+
+                <Typography
+                  component="span"
+                  variant="caption"
+                >
+                  -{ formatRupiah(dailyTotals.get(exp.date) ?? 0) }
+                </Typography>
               </ListSubheader>
             ) }
 

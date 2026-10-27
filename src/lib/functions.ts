@@ -1,4 +1,4 @@
-import type { CashFlow } from "@/lib/types";
+import { CASH_FLOWS } from "@/lib/constants";
 
 
 
@@ -18,6 +18,11 @@ export function formatDate(date: string) {
   });
 }
 
-export function isCashFlow(value: unknown): value is CashFlow {
-    return value === 'in' || value === 'out';
+export function isCashFlow(value: unknown): value is typeof CASH_FLOWS[number] {
+    return (CASH_FLOWS as readonly unknown[]).includes(value);
+}
+
+
+export function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
