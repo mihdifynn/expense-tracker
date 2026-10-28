@@ -1,4 +1,4 @@
-import type { Account, Expense } from "@/lib/types";
+import type { Account, Expense, Loan } from "@/lib/types";
 
 import { addFormSx as styles } from "@/lib/styles";
 import { useState, useEffect } from "react";
@@ -51,6 +51,11 @@ export default function AddForm(props: Props) {
 
       <AccountDialog
         open={openDialog === 1}
+        onClose={() => setOpenDialog(null)}
+      />
+
+      <LoanDialog
+        open={openDialog === 2}
         onClose={() => setOpenDialog(null)}
       />
     </>
@@ -242,7 +247,7 @@ export function ExpenseDialog(props: ExpenseDialogProps) {
 
   useEffect(() => {
     if (open) {
-      setForm(expense ? toForm(expense) : getInitialExpense());
+      expense && setForm(toForm(expense));
       setError(null)
     }
   }, [expense, open])
@@ -381,14 +386,166 @@ export function ExpenseDialog(props: ExpenseDialogProps) {
       </DialogContent>
 
       <DialogActions>
-        { isEdit && (
-          <Button
-            color="error"
-            onClick={handleDelete}
+      { isEdit && (
+        <Button
+          color="error"
+          onClick={handleDelete}
+        >
+          Delete
+        </Button>
+      ) }
+
+        <Button
+          onClick={handleClose}
+          color="inherit"
+        >
+          Cancel
+        </Button>
+
+        <Button
+          onClick={handleSave}
+        >
+          Save
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+
+
+interface LoanDialogProps extends DialogProps {
+  loan?: Loan;
+}
+
+type LoanForm = Omit<Loan, 'id'>;
+
+const initialLoan: LoanForm = {
+  name: '',
+  flow: 'out',
+  amount: 0,
+  notes: ''
+}
+
+
+export function LoanDialog(props: LoanDialogProps) {
+
+  const { open, onClose, loan } = props;
+
+  const isEdit = loan !== undefined;
+
+  const { addLoan, editLoan, deleteLoan } = useData();
+  const [form, setForm] = useState<LoanForm>(initialLoan);
+
+  const handleClose = () => {
+    setForm(initialLoan);
+    onClose();
+  }
+
+  const handleDelete = () => {
+    if (loan) deleteLoan(loan.id)
+  }
+
+  const handleSave = () => {
+    const newLoan: Loan = {
+      ...form,
+      id: isEdit ? loan.id : crypto.randomUUID()
+    }
+
+    if (isEdit) editLoan(newLoan);
+    else addLoan(newLoan);
+
+    handleClose();
+  }
+
+  useEffect(() => {
+    if (open && loan) {
+      setForm(loan)
+    }
+  }, [loan, open])
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      slotProps={{
+        paper: { sx: styles.buttonSx }
+      }}
+      fullWidth
+    >
+      <DialogTitle>
+        {isEdit ? 'Edit' : 'Add'} Loan
+      </DialogTitle>
+
+      <DialogContent>
+        <TextField
+          margin="normal"
+          variant="filled"
+          label="Name"
+          value={form.name}
+          onChange={e => setForm(prev => ({
+            ...prev,
+            name: e.target.value
+          }))}
+          fullWidth
+        />
+
+        <TextField
+          margin="normal"
+          variant="filled"
+          label="Flow"
+          value={form.flow}
+          onChange={e => setForm(prev => ({
+            ...prev,
+            flow: (isCashFlow(e.target.value) && e.target.value !== 'transfer') ? e.target.value : 'out'
+          }))}
+          select
+          fullWidth
+        >
+        { CASH_FLOWS.map(flow => flow !== 'transfer' && (
+          <MenuItem
+            key={flow}
+            value={flow}
           >
-            Delete
-          </Button>
-        ) }
+            {capitalize(flow)}
+          </MenuItem>
+        )) }
+        </TextField>
+
+        <TextField
+          margin="normal"
+          variant="filled"
+          label="Notes"
+          value={form.notes}
+          onChange={e => setForm(prev => ({
+            ...prev,
+            notes: e.target.value
+          }))}
+          fullWidth        
+        />
+
+        <NumberTextField
+          margin="normal"
+          variant="filled"
+          label="Amount"
+          value={String(form.amount)}
+          onChange={val => setForm(prev => ({
+            ...prev,
+            amount: Number(val)
+          }))}
+          fullWidth
+        />
+      </DialogContent>
+
+      <DialogActions>
+      { isEdit && (
+        <Button
+          color="error"
+          onClick={handleDelete}
+        >
+          Delete
+        </Button>
+      ) }
 
         <Button
           onClick={handleClose}

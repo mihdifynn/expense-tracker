@@ -2,6 +2,7 @@ import type { DataContextType, Expense, Account, Loan, AppData } from "@/lib/typ
 
 import { useState, useEffect, useMemo } from "react";
 import { DataContext } from "@/lib/data-context";
+import { deleteOldExpenses } from "@/lib/functions";
 
 
 
@@ -12,24 +13,36 @@ interface DataProviderProps {
 }
 
 
+const defaultData: AppData = {
+  expenses: [],
+  accounts: [],
+  loans: [],
+  dailyBudget: 0,
+  savings: 0,
+  others: 0
+};
+
+
 export default function DataProvider(props: DataProviderProps) {
 
   const { children } = props;
 
   const [data, setData] = useState<AppData>(() => {
-    const storedData = localStorage.getItem('expense-data');
+    
+    try {
 
-    if (storedData) {
-      return JSON.parse(storedData);
+      const storedData = localStorage.getItem('expense-data');
+
+      if (storedData) {
+        const data = JSON.parse(storedData);
+
+        return deleteOldExpenses({ ...defaultData, ...data})
+      }
+      else return defaultData
     }
-    else return {
-      expenses: [],
-      accounts: [],
-      loans: [],
-      dailyBudget: 0,
-      savings: 0,
-      others: 0
-    };
+    catch {
+      return defaultData
+    }
   });
 
   const editDailyBudget = (amount: number) => {
@@ -111,6 +124,24 @@ export default function DataProvider(props: DataProviderProps) {
     }));
   }
 
+  const editLoan = (loan: Loan) => {
+    setData(prev => ({
+      ...prev,
+      loans: prev.loans.map(ln => {
+        return loan.id === ln.id
+        ? loan
+        : ln
+      })
+    }))
+  }
+
+  const deleteLoan = (id: string) => {
+    setData(prev => ({
+      ...prev,
+      loans: prev.loans.filter(ln => ln.id !== id)
+    }))
+  }
+
   const accountNameMap = useMemo(() => {
     return new Map(data.accounts.map(acc => [acc.id, acc.name]));
   }, [data.accounts]);
@@ -125,6 +156,8 @@ export default function DataProvider(props: DataProviderProps) {
     editExpense,
     deleteExpense,
     addLoan,
+    editLoan,
+    deleteLoan,
     editDailyBudget,
     editSavings,
     editOthers

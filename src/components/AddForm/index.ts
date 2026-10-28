@@ -1,1 +1,1 @@
-export { default, ExpenseDialog } from "./AddForm";
+export { default, ExpenseDialog, LoanDialog } from "./AddForm";

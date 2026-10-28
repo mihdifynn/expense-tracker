@@ -29,6 +29,10 @@ export type Expense = InOutExpense | TransferExpense;
 
 export interface Loan {
     id: string;
+    name: string;
+    notes: string;
+    flow: 'in' | 'out';
+    amount: number;
 }
 
 
@@ -52,6 +56,8 @@ export interface DataContextType  {
     editExpense: (expense: Expense) => void;
     deleteExpense: (id: string) => void;
     addLoan: (loan: Loan) => void;
+    editLoan: (loan: Loan) => void;
+    deleteLoan: (id: string) => void;
     editDailyBudget: (amount: number) => void;
     editSavings: (amount: number) => void;
     editOthers: (amount: number) => void;

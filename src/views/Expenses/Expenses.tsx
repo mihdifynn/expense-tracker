@@ -43,7 +43,7 @@ export default function Expenses() {
   )
 
   return (
-    <Box>
+    <Box sx={{ pb: 7 }}>
       <List>
       { sortedExpenses.map((exp, i) => {
         const showDate = i === 0 || exp.date !== sortedExpenses[i - 1].date;

@@ -8,6 +8,7 @@ import AddForm from "@/components/AddForm";
 import DataProvider from "@/lib/data";
 import Accounts from "@/views/Accounts";
 import Expenses from "@/views/Expenses";
+import Loans from "@/views/Loans";
 
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
@@ -49,7 +50,7 @@ export default function App() {
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
-            Coming soon...
+            <Loans />
           </TabPanel>
         </Box>
 
