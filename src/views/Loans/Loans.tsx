@@ -1,5 +1,7 @@
 import { useData } from "@/lib/useData";
 import { Fragment } from "react";
+import { listSubheaderSx as styles } from "@/lib/styles";
+import { formatRupiah } from "@/lib/functions";
 
 import LoanCard from "./LoanCard";
 
@@ -15,7 +17,9 @@ export default function Loans() {
   const { data: { loans } } = useData();
 
   const iOweU = loans.filter(ln => ln.flow === 'in');
+  const iOweUTotal = iOweU.reduce((sum, loan) => loan.amount + sum, 0)
   const uOweMe = loans.filter(ln => ln.flow === 'out');
+  const uOweMeTotal = uOweMe.reduce((sum, loan) => loan.amount + sum, 0)
 
   if (loans.length === 0) return (
     <Typography
@@ -32,8 +36,15 @@ export default function Loans() {
       { iOweU.map((loan, i) => (
         <Fragment key={loan.id}>
         { i === 0 && (
-          <ListSubheader>
-            I O U
+          <ListSubheader sx={styles}>
+            <span>I O U</span>
+
+            <Typography
+              component="span"
+              variant="caption"
+            >
+              {formatRupiah(iOweUTotal)}
+            </Typography>
           </ListSubheader>
         ) }
 
@@ -44,8 +55,15 @@ export default function Loans() {
       { uOweMe.map((loan, i) => (
         <Fragment key={loan.id}>
         { i === 0 && (
-          <ListSubheader>
-            U O Me
+          <ListSubheader sx={styles}>
+            <span>U O Me</span>
+
+            <Typography
+              component="span"
+              variant="caption"
+            >
+              {formatRupiah(uOweMeTotal)}
+            </Typography>
           </ListSubheader>
         ) }
 

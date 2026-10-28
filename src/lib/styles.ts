@@ -40,3 +40,9 @@ export const addFormSx = {
     },
     buttonSx
 } as const satisfies Record<string, SxProps>;
+
+export const listSubheaderSx = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+} as const satisfies SxProps;

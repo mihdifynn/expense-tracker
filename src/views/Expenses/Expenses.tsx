@@ -1,6 +1,7 @@
 import { useData } from "@/lib/useData";
 import { useMemo, Fragment } from "react";
 import { formatDate, formatRupiah } from "@/lib/functions";
+import { listSubheaderSx as styles } from "@/lib/styles";
 
 import ExpenseCard from "./ExpenseCard";
 
@@ -51,13 +52,7 @@ export default function Expenses() {
         return (
           <Fragment key={exp.id}>
             { showDate && (
-              <ListSubheader
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
+              <ListSubheader sx={styles}>
                 <span>
                   { formatDate(exp.date) }
                 </span>
