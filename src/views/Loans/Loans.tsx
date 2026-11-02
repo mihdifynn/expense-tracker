@@ -18,6 +18,7 @@ export default function Loans() {
 
   const iOweU = loans.filter(ln => ln.flow === 'in');
   const iOweUTotal = iOweU.reduce((sum, loan) => loan.amount + sum, 0)
+  
   const uOweMe = loans.filter(ln => ln.flow === 'out');
   const uOweMeTotal = uOweMe.reduce((sum, loan) => loan.amount + sum, 0)
 

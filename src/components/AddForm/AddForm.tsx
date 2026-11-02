@@ -1,7 +1,7 @@
 import type { Account, Expense, Loan } from "@/lib/types";
 
 import { addFormSx as styles } from "@/lib/styles";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useData } from "@/lib/useData";
 import { isCashFlow, capitalize } from "@/lib/functions";
 import { CASH_FLOWS } from "@/lib/constants";
@@ -173,14 +173,17 @@ interface ExpenseForm extends Pick<Expense, 'accountId' | 'amount' | 'date' | 'f
 
 }
 
-const getInitialExpense = (): ExpenseForm => ({
-  accountId: '',
-  toAccountId: '',
-  amount: 0,
-  description: '',
-  date: new Date().toLocaleDateString('en-CA'),
-  flow: 'out'
-})
+const getInitialExpense = (expense?: Expense): ExpenseForm => {
+  if (expense) return toForm(expense);
+  else return {
+    accountId: '',
+    toAccountId: '',
+    amount: 0,
+    description: '',
+    date: new Date().toLocaleDateString('en-CA'),
+    flow: 'out'
+  }
+}
 
 const toForm = (e: Expense): ExpenseForm => ({
   accountId: e.accountId,
@@ -212,13 +215,13 @@ export function ExpenseDialog(props: ExpenseDialogProps) {
   const isEdit = expense !== undefined;
 
   const { data, addExpense, editExpense, deleteExpense } = useData();
-  const [form, setForm] = useState<ExpenseForm>(getInitialExpense);
+  const [form, setForm] = useState<ExpenseForm>(getInitialExpense(expense));
   const [error, setError] = useState<'account' | 'toAccount' | null>(null);
 
   const isTransfer = form.flow === 'transfer';
 
   const handleClose = () => {
-    setForm(getInitialExpense());
+    setForm(getInitialExpense(expense));
     setError(null);
     onClose();
   }
@@ -244,13 +247,6 @@ export function ExpenseDialog(props: ExpenseDialogProps) {
 
     handleClose();
   }
-
-  useEffect(() => {
-    if (open) {
-      expense && setForm(toForm(expense));
-      setError(null)
-    }
-  }, [expense, open])
 
   return (
     <Dialog
@@ -427,6 +423,13 @@ const initialLoan: LoanForm = {
   notes: ''
 }
 
+const toLoanForm = (loan: Loan): LoanForm => ({
+  name: loan.name,
+  flow: loan.flow,
+  amount: loan.amount,
+  notes: loan.notes
+});
+
 
 export function LoanDialog(props: LoanDialogProps) {
 
@@ -435,10 +438,10 @@ export function LoanDialog(props: LoanDialogProps) {
   const isEdit = loan !== undefined;
 
   const { addLoan, editLoan, deleteLoan } = useData();
-  const [form, setForm] = useState<LoanForm>(initialLoan);
+  const [form, setForm] = useState<LoanForm>(isEdit ? toLoanForm(loan) : initialLoan);
 
   const handleClose = () => {
-    setForm(initialLoan);
+    setForm(isEdit ? toLoanForm(loan) : initialLoan);
     onClose();
   }
 
@@ -457,12 +460,6 @@ export function LoanDialog(props: LoanDialogProps) {
 
     handleClose();
   }
-
-  useEffect(() => {
-    if (open && loan) {
-      setForm(loan)
-    }
-  }, [loan, open])
 
   return (
     <Dialog

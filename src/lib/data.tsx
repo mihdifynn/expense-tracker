@@ -28,9 +28,7 @@ export default function DataProvider(props: DataProviderProps) {
   const { children } = props;
 
   const [data, setData] = useState<AppData>(() => {
-    
     try {
-
       const storedData = localStorage.getItem('expense-data');
 
       if (storedData) {

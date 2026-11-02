@@ -1,7 +1,7 @@
 import { useData } from "@/lib/useData";
-import { useMemo, Fragment } from "react";
+import { useMemo, Fragment, useState } from "react";
 import { formatDate, formatRupiah } from "@/lib/functions";
-import { listSubheaderSx as styles } from "@/lib/styles";
+import { listSubheaderSx as styles, buttonSx } from "@/lib/styles";
 
 import ExpenseCard from "./ExpenseCard";
 
@@ -9,12 +9,19 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import List from "@mui/material/List";
 import ListSubheader from "@mui/material/ListSubheader";
+import Button from "@mui/material/Button";
 
+
+
+const PAGE_LIMIT = 15;
 
 
 export default function Expenses() {
 
   const { data: { expenses } } = useData();
+
+  const [visibleCount, setVisibleCount] = useState(PAGE_LIMIT);
+  const hasMore = visibleCount < expenses.length;
 
   const sortedExpenses = useMemo(() => {
     return [...expenses].sort((a, b) => {
@@ -46,7 +53,7 @@ export default function Expenses() {
   return (
     <Box sx={{ pb: 7 }}>
       <List>
-      { sortedExpenses.map((exp, i) => {
+      { sortedExpenses.slice(0, visibleCount).map((exp, i) => {
         const showDate = i === 0 || exp.date !== sortedExpenses[i - 1].date;
 
         return (
@@ -71,6 +78,16 @@ export default function Expenses() {
         )
       }) }
       </List>
+      { hasMore && (
+        <Box sx={{ textAlign: 'center' }}>
+          <Button
+            sx={buttonSx}
+            onClick={() => setVisibleCount(prev => prev + PAGE_LIMIT)}
+          >
+            Load {expenses.length - visibleCount} more
+          </Button>
+        </Box>
+      )}
     </Box>
   )
 }
